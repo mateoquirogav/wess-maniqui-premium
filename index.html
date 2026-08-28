@@ -269,9 +269,9 @@ try {
 
   /* --- perfiles: [altura, ancho, profundidad] --- */
   const TORSO = [
-    [1.58, .10, .10], [1.66, .34, .24], [1.80, .455,.285], [1.92, .445,.275],
-    [2.04, .395,.245], [2.14, .375,.235], [2.28, .405,.255], [2.42, .445,.272],
-    [2.58, .462,.275], [2.72, .455,.268], [2.83, .415,.252], [2.93, .300,.220],
+    [1.58, .10, .10], [1.66, .32, .23], [1.80, .408,.258], [1.92, .400,.250],
+    [2.04, .368,.232], [2.14, .352,.224], [2.28, .385,.242], [2.42, .428,.262],
+    [2.58, .448,.268], [2.72, .442,.262], [2.83, .408,.248], [2.93, .298,.218],
     [3.02, .205,.190], [3.14, .172,.170], [3.30, .170,.168], [3.38, .175,.172]
   ];
   const PIERNA = [
@@ -330,11 +330,11 @@ try {
     malla(cuerpo, loft(PIE, 0, .03), mCalzado, s*SEPP, .07);
   });
   [-1, 1].forEach(s => {
-    const d = malla(cuerpo, new THREE.SphereGeometry(.185, 24, 18), mPiel, s*.40);
-    d.position.y = 2.80;                          /* deltoides: redondea el hombro */
+    const d = malla(cuerpo, new THREE.SphereGeometry(.205, 24, 18), mPiel, s*.425);
+    d.position.y = 2.78; d.scale.set(1, 1.12, 1); /* deltoides: cierra la unión hombro-brazo */
   });
 
-  const SEPB = .565;
+  const SEPB = .495;
   const brazos = [-1, 1].map(s => {
     const piv = new THREE.Group();
     piv.position.set(s*SEPB, 2.86, 0);
@@ -352,7 +352,7 @@ try {
   malla(gCab, loft(CABEZA), mPiel);
 
   const PELO_CORTO = [
-    [3.62, .326,.360], [3.72, .358,.392], [3.86, .364,.398], [3.98, .343,.370],
+    [3.70, .330,.364], [3.78, .358,.392], [3.86, .364,.398], [3.98, .343,.370],
     [4.08, .293,.310], [4.16, .200,.210], [4.21, .07, .07]
   ];
   const PELO_LARGO_TAPA = [
@@ -373,18 +373,25 @@ try {
 
   /* --- ROPA: mismo perfil del cuerpo + holgura --- */
   const ropa = new THREE.Group(); cuerpo.add(ropa);
-  const REMERA = TORSO.filter(p => p[0] >= 1.70 && p[0] <= 2.92);
-  malla(ropa, loft(REMERA, .045), mPrenda);
-  const MANGA = BRAZO.filter(p => p[0] >= 2.30);
+  /* perfil propio: baja recta, sube por el pecho y cierra en el hombro */
+  const REMERA = [
+    [1.92, .432,.272], [2.02, .420,.264], [2.14, .404,.256], [2.30, .428,.266],
+    [2.46, .462,.282], [2.62, .478,.288], [2.76, .472,.282],
+    [2.87, .446,.268], [2.94, .378,.246], [2.99, .292,.218], [3.03, .212,.194]
+  ];
+  malla(ropa, loft(REMERA), mPrenda);
+  const MANGA = [
+    [2.38, .162,.162], [2.56, .182,.182], [2.74, .202,.202], [2.90, .214,.212], [2.96, .200,.198]
+  ];
   brazos.forEach((piv, i) => {
     const s = i === 0 ? -1 : 1;
     const g = new THREE.Group(); g.position.set(-s*SEPB, -2.86, 0); piv.add(g);
-    malla(g, loft(MANGA, .042), mPrenda, s*SEPB);
+    malla(g, loft(MANGA), mPrenda, s*SEPB);
   });
-  const PANT_CADERA = TORSO.filter(p => p[0] >= 1.62 && p[0] <= 2.18);
-  malla(ropa, loft(PANT_CADERA, .040), mPantalon);
+  const PANT_CADERA = TORSO.filter(p => p[0] >= 1.62 && p[0] <= 2.10);
+  malla(ropa, loft(PANT_CADERA, .030), mPantalon);
   const PANT_PIERNA = PIERNA.filter(p => p[0] >= 0.26);
-  [-1, 1].forEach(s => malla(ropa, loft(PANT_PIERNA, .038), mPantalon, s*SEPP));
+  [-1, 1].forEach(s => malla(ropa, loft(PANT_PIERNA, .026), mPantalon, s*SEPP));
 
   /* --- estado --- */
   const S = { silueta:'corto', alt:175, pes:72 };
