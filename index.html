@@ -461,9 +461,25 @@ try {
     }
   }
 
+  /* el canvas se re-mide en cada frame: si el contenedor cambio, el render lo sigue */
+  const tam = new THREE.Vector2();
+  function ajustar(){
+    const w = cont.clientWidth, h = cont.clientHeight;
+    if (!w || !h) return;
+    rend.getSize(tam);
+    if (Math.abs(tam.x - w) > 1 || Math.abs(tam.y - h) > 1){
+      cam.aspect = w / h; cam.updateProjectionMatrix();
+      rend.setSize(w, h, false);
+      rend.domElement.style.width = '100%';
+      rend.domElement.style.height = '100%';
+    }
+  }
+  if ('ResizeObserver' in window) new ResizeObserver(ajustar).observe(cont);
+
   const reloj = new THREE.Clock();
   (function anim(){
     requestAnimationFrame(anim);
+    ajustar();
     const dt = Math.min(.05, reloj.getDelta()), t = reloj.elapsedTime;
 
     if (saludo > 0) saludo = Math.max(0, saludo - dt/1.5);
@@ -510,10 +526,7 @@ try {
     rend.render(escena, cam);
   })();
 
-  addEventListener('resize', () => {
-    const w = cont.clientWidth, h = cont.clientHeight;
-    cam.aspect = w/h; cam.updateProjectionMatrix(); rend.setSize(w,h);
-  });
+  addEventListener('resize', ajustar);
 
   if ('IntersectionObserver' in window){
     let visto = false;
