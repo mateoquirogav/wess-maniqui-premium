@@ -1,0 +1,444 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Wess · Maniquí premium — vitrina 3D</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js" } }
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --hueso:#F4F0E9; --hueso2:#E9E2D6; --blanco:#fff;
+  --tinta:#221E1C; --gris:#7C7169; --linea:#E2D9CC;
+  --carbon:#1E1B1A; --oro:#C9A227;
+  --sombra:0 12px 34px rgba(60,45,30,.10);
+  --sombra2:0 26px 64px rgba(60,45,30,.16);
+}
+html,body{background:var(--hueso);color:var(--tinta);font-family:Nunito,system-ui,-apple-system,"Segoe UI",sans-serif;-webkit-font-smoothing:antialiased}
+body{min-height:100vh;overflow-x:hidden}
+.wrapper{max-width:1120px;margin:0 auto;padding:30px 22px 70px}
+
+.top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:24px}
+.top .tag{font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--carbon);background:var(--hueso2);border-radius:999px;padding:6px 14px}
+.top h1{font-size:15px;font-weight:600;color:var(--gris)}
+.top h1 b{color:var(--tinta);font-weight:800}
+
+.head{text-align:center;margin-bottom:26px}
+.head h2{font-size:42px;font-weight:900;letter-spacing:-.03em;line-height:1.05;margin-bottom:10px}
+.head h2 em{font-style:normal;color:var(--gris)}
+.head p{font-size:16px;font-weight:600;color:var(--gris);max-width:600px;margin:0 auto;line-height:1.55}
+
+.escenario{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:22px;align-items:stretch}
+
+/* ---------- LA VITRINA ---------- */
+.vitrina{position:relative;border-radius:28px;overflow:hidden;min-height:560px;
+  background:
+    radial-gradient(ellipse 62% 42% at 50% 96%, rgba(150,120,80,.18), transparent 68%),
+    radial-gradient(ellipse 90% 70% at 50% 22%, #FFFDF9, transparent 70%),
+    linear-gradient(180deg,#F7F3EC 0%,#EDE5D8 62%,#E2D8C7 100%);
+  box-shadow:var(--sombra2), inset 0 1px 0 rgba(255,255,255,.9), inset 0 -26px 44px rgba(120,95,65,.10);
+  border:1px solid #E4DACB}
+/* costados de la caja: dan la sensacion de profundidad */
+.vitrina::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:linear-gradient(90deg, rgba(120,95,65,.14), transparent 16%, transparent 84%, rgba(120,95,65,.14)),
+             linear-gradient(180deg, rgba(120,95,65,.10), transparent 22%)}
+/* reflejo del vidrio */
+.vitrina::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:4;
+  background:linear-gradient(104deg, rgba(255,255,255,.44) 0%, rgba(255,255,255,.10) 17%, transparent 34%, transparent 100%)}
+.vitrina canvas{display:block;width:100%;height:100%;position:relative;z-index:2}
+.cargando{position:absolute;inset:0;z-index:5;display:grid;place-items:center;text-align:center;font-size:13.5px;font-weight:700;color:var(--gris);line-height:1.6;padding:0 30px}
+.marca{position:absolute;z-index:5;left:0;right:0;bottom:16px;text-align:center;font-size:10px;font-weight:800;letter-spacing:.34em;text-transform:uppercase;color:rgba(70,58,48,.42)}
+
+/* ---------- PANEL ---------- */
+.panel{background:var(--blanco);border-radius:28px;padding:26px;box-shadow:var(--sombra);display:flex;flex-direction:column;gap:22px}
+.bloque > .lab{display:block;font-size:11px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:var(--gris);margin-bottom:11px}
+
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.sil{border:2px solid var(--linea);background:var(--blanco);border-radius:18px;padding:15px 8px 13px;text-align:center;cursor:pointer;
+  transition:border-color .3s,background .3s,transform .25s}
+.sil:hover{transform:translateY(-2px)}
+.sil svg{display:block;margin:0 auto 6px;stroke:#B3A899;fill:none;stroke-width:6;stroke-linecap:round;stroke-linejoin:round;transition:stroke .3s}
+.sil span{font-size:13.5px;font-weight:800;display:block}
+.sil small{font-size:11px;font-weight:700;color:var(--gris)}
+.sil.on{border-color:var(--carbon);background:#FAF7F2}
+.sil.on svg{stroke:var(--carbon)}
+
+.tonos{display:grid;grid-template-columns:repeat(7,1fr);gap:8px}
+.tono{aspect-ratio:1;border-radius:50%;cursor:pointer;border:2px solid rgba(0,0,0,.07);position:relative;
+  transition:transform .25s cubic-bezier(.2,1.5,.4,1),box-shadow .25s}
+.tono:hover{transform:scale(1.12)}
+.tono.on{transform:scale(1.16);box-shadow:0 0 0 2px var(--blanco),0 0 0 4px var(--carbon)}
+.tonoNom{margin-top:10px;font-size:12.5px;font-weight:800;color:var(--tinta);min-height:17px}
+.tonoNom em{font-style:normal;color:var(--gris);font-weight:700}
+
+.acc{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.bt{border:0;cursor:pointer;font-family:inherit;font-size:13.5px;font-weight:800;border-radius:15px;padding:14px 8px;
+  background:var(--hueso2);color:var(--tinta);transition:transform .2s cubic-bezier(.2,1.5,.4,1),background .25s,color .25s}
+.bt:hover{transform:translateY(-2px);background:var(--carbon);color:var(--hueso)}
+.bt.full{grid-column:1/-1;background:var(--carbon);color:var(--hueso)}
+.bt.full:hover{background:#000}
+
+.medida{background:#FAF7F2;border-radius:18px;padding:16px 18px}
+.medida .fila{display:flex;justify-content:space-between;align-items:center;padding:5px 0;font-size:13px;font-weight:700}
+.medida .fila span{color:var(--gris);font-weight:600}
+.medida input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:4px;background:var(--linea);outline:none;cursor:pointer;margin-top:9px}
+.medida input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:22px;height:22px;border-radius:50%;cursor:pointer;background:var(--carbon);border:4px solid #fff;box-shadow:0 3px 10px rgba(0,0,0,.22)}
+.medida input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--carbon);border:4px solid #fff;cursor:pointer}
+
+.notas{margin-top:26px;background:var(--blanco);border-radius:26px;padding:26px 30px;box-shadow:var(--sombra)}
+.notas h3{font-size:21px;font-weight:900;margin-bottom:12px}
+.notas p{font-size:14.5px;font-weight:600;color:var(--gris);line-height:1.65;margin-bottom:9px}
+.notas p b{color:var(--tinta);font-weight:800}
+
+@media (max-width:900px){
+  .escenario{grid-template-columns:1fr}
+  .vitrina{min-height:430px}
+  .head h2{font-size:29px}
+  .tonos{grid-template-columns:repeat(7,1fr)}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrapper">
+
+  <div class="top">
+    <span class="tag">Personaje</span>
+    <h1><b>Wess Indumentaria</b> · Maniquí premium en vitrina — sin rostro</h1>
+  </div>
+
+  <div class="head">
+    <h2>Tu maniquí, <em>en su vitrina</em></h2>
+    <p>Sin rostro, como los de una vidriera: el protagonista es la prenda, no el muñeco. Cambiá la silueta y mirá cómo gira para transformarse.</p>
+  </div>
+
+  <div class="escenario">
+
+    <div class="vitrina" id="vitrina">
+      <div class="cargando" id="carga">Preparando la vitrina…</div>
+      <div class="marca">Wess · Probador</div>
+    </div>
+
+    <div class="panel">
+
+      <div class="bloque">
+        <span class="lab">Silueta</span>
+        <div class="duo" id="sil">
+          <div class="sil on" data-v="corto">
+            <svg width="34" height="34" viewBox="0 0 64 64"><path d="M32 8c-11 0-17 7-17 16v4"/><path d="M49 28v-4c0-9-6-16-17-16"/><path d="M20 30h24"/></svg>
+            <span>Corto</span><small>hombre</small>
+          </div>
+          <div class="sil" data-v="largo">
+            <svg width="34" height="34" viewBox="0 0 64 64"><path d="M32 8c-11 0-17 7-17 16v6"/><path d="M49 30v-6c0-9-6-16-17-16"/><path d="M15 30c0 12-2 18-3 24M49 30c0 12 2 18 3 24"/></svg>
+            <span>Largo</span><small>mujer</small>
+          </div>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <span class="lab">Color de la prenda</span>
+        <div class="tonos" id="tonos"></div>
+        <div class="tonoNom" id="tonoNom"></div>
+      </div>
+
+      <div class="bloque">
+        <span class="lab">Medidas</span>
+        <div class="medida">
+          <div class="fila"><span>Altura</span><b><span id="v-alt">175</span> cm</b></div>
+          <input type="range" id="r-alt" min="148" max="205" value="175">
+          <div class="fila" style="margin-top:12px"><span>Contextura</span><b><span id="v-pes">72</span> kg</b></div>
+          <input type="range" id="r-pes" min="45" max="140" value="72">
+        </div>
+      </div>
+
+      <div class="bloque">
+        <span class="lab">Cómo reacciona</span>
+        <div class="acc">
+          <button class="bt" id="b-hola">Saludar</button>
+          <button class="bt" id="b-fest">Festejar</button>
+          <button class="bt full" id="b-girar">Girar 360°</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="notas">
+    <h3>Por qué sin rostro</h3>
+    <p><b>Un maniquí sin cara no compite con la prenda.</b> Es exactamente lo que hace una vidriera buena: la figura sostiene la ropa y desaparece. Además evita el problema de que el cliente sienta que "ese no soy yo" — sin rasgos, es cualquiera.</p>
+    <p><b>El género no tiene color.</b> No hay rosa ni celeste acá: la silueta cambia de pelo y nada más. El color lo elige el cliente sobre la prenda, con una paleta de tonos de temporada — carbón, crudo, terracota, oliva, borgoña, petróleo y camel.</p>
+    <p><b>Está parado en una vitrina, no flotando.</b> Pedestal con sombra apoyada, paredes con profundidad y un reflejo de vidrio encima. Cambiar de silueta lo hace <b>girar sobre su eje</b> y el pelo se transforma cuando está de espaldas — nunca se ve el cambio, solo el resultado.</p>
+  </div>
+
+</div>
+
+<script type="module">
+import * as THREE from 'three';
+
+const cont  = document.getElementById('vitrina');
+const carga = document.getElementById('carga');
+
+/* ---------- paleta premium de prendas (sin rosa ni celeste) ---------- */
+const TONOS = [
+  { n:'Carbón',    c:0x232122, sub:'el negro de Wess' },
+  { n:'Crudo',     c:0xE6DCCB, sub:'hueso cálido' },
+  { n:'Terracota', c:0xB0563B, sub:'tierra quemada' },
+  { n:'Oliva',     c:0x5C6349, sub:'verde militar' },
+  { n:'Borgoña',   c:0x6B2333, sub:'vino profundo' },
+  { n:'Petróleo',  c:0x27505A, sub:'azul profundo' },
+  { n:'Camel',     c:0xB08152, sub:'cuero claro' }
+];
+
+try {
+  const W = cont.clientWidth, H = cont.clientHeight;
+  const escena = new THREE.Scene();
+
+  const cam = new THREE.PerspectiveCamera(34, W/H, 0.1, 100);
+  cam.position.set(0, 2.45, 9.1); cam.lookAt(0, 1.98, 0);
+
+  const rend = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+  rend.setPixelRatio(Math.min(devicePixelRatio, 2));
+  rend.setSize(W, H);
+  rend.shadowMap.enabled = true;
+  rend.shadowMap.type = THREE.PCFSoftShadowMap;
+  rend.toneMapping = THREE.ACESFilmicToneMapping;
+  rend.toneMappingExposure = 1.06;
+  cont.appendChild(rend.domElement);
+  carga.remove();
+
+  /* ---------- luz de vitrina: cenital cálida + relleno frío + contraluz ---------- */
+  escena.add(new THREE.HemisphereLight(0xFFF6E9, 0xC9B79C, 1.15));
+  const key = new THREE.DirectionalLight(0xFFF2E0, 2.5);
+  key.position.set(2.6, 7.2, 4.4);
+  key.castShadow = true;
+  key.shadow.mapSize.set(2048, 2048);
+  key.shadow.camera.top = 6; key.shadow.camera.bottom = -2;
+  key.shadow.camera.left = -4; key.shadow.camera.right = 4;
+  key.shadow.radius = 4; key.shadow.bias = -0.0012;
+  escena.add(key);
+  const fill = new THREE.DirectionalLight(0xE4EEF5, .70); fill.position.set(-4.2, 2.4, 3); escena.add(fill);
+  const rim  = new THREE.DirectionalLight(0xFFFFFF, 1.05); rim.position.set(-1.4, 3.6, -5); escena.add(rim);
+
+  /* ---------- materiales ---------- */
+  const mat = (col, rough, met) => new THREE.MeshStandardMaterial({ color:col, roughness:rough, metalness:met||0 });
+  const mPorcelana = mat(0xEFE6D9, .58);           /* cuerpo: porcelana mate */
+  const mPelo      = mat(0x2B2726, .74);
+  const mPrenda    = mat(TONOS[0].c, .82);
+  const mPantalon  = mat(0x6A6560, .88);
+  const mCalzado   = mat(0xF2EDE4, .55);
+  const mPedestal  = mat(0xE3D9C9, .72);
+  const mAro       = new THREE.MeshStandardMaterial({ color:0xC9A227, roughness:.34, metalness:.85 });
+  function pieza(padre, geo, material, x, y, z){
+    const m = new THREE.Mesh(geo, material);
+    m.position.set(x, y, z||0);
+    m.castShadow = true; m.receiveShadow = true;
+    padre.add(m);
+    return m;
+  }
+
+  /* ---------- vitrina: pedestal + piso ---------- */
+  const piso = new THREE.Mesh(new THREE.CircleGeometry(9, 48), new THREE.ShadowMaterial({ opacity:.20 }));
+  piso.rotation.x = -Math.PI/2; piso.receiveShadow = true; escena.add(piso);
+
+  const pedestal = new THREE.Group(); escena.add(pedestal);
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.62, 1.78, .34, 64), mPedestal);
+  base.position.y = .17; base.castShadow = true; base.receiveShadow = true; pedestal.add(base);
+  const aro = new THREE.Mesh(new THREE.TorusGeometry(1.63, .022, 12, 80), mAro);
+  aro.rotation.x = Math.PI/2; aro.position.y = .335; pedestal.add(aro);
+
+  /* ---------- el maniquí ---------- */
+  const muneco = new THREE.Group(); muneco.position.y = .34; escena.add(muneco);
+  const cuerpo = new THREE.Group(); muneco.add(cuerpo);
+
+  const P = {};
+  P.torso   = pieza(cuerpo, new THREE.CapsuleGeometry(.44, .74, 8, 26), mPrenda,   0, 2.02);
+  P.cadera  = pieza(cuerpo, new THREE.CapsuleGeometry(.38, .10, 8, 24), mPantalon, 0, 1.42);
+  P.piernas = [-1, 1].map(s => pieza(cuerpo, new THREE.CapsuleGeometry(.175, .74, 8, 20), mPantalon, s*.205, .74));
+  P.pies    = [-1, 1].map(s => {
+    const p = pieza(cuerpo, new THREE.CapsuleGeometry(.165, .16, 6, 18), mCalzado, s*.205, .15, .08);
+    p.rotation.x = Math.PI/2;
+    return p;
+  });
+
+  /* brazos con pivote en el hombro */
+  P.brazos = [-1, 1].map(s => {
+    const piv = new THREE.Group();
+    piv.position.set(s*.50, 2.28, 0);
+    cuerpo.add(piv);
+    pieza(piv, new THREE.SphereGeometry(.20, 22, 18),       mPrenda,     0, 0);      /* hombro: cierra la union */
+    pieza(piv, new THREE.CapsuleGeometry(.155, .40, 8, 18), mPrenda,     0, -.26);
+    pieza(piv, new THREE.CapsuleGeometry(.128, .20, 8, 16), mPorcelana,  0, -.62);
+    pieza(piv, new THREE.SphereGeometry(.155, 22, 18),      mPorcelana,  0, -.80);
+    return piv;
+  });
+
+  /* cabeza chibi grande y LISA — sin ojos, sin boca, sin nada */
+  const cabeza = new THREE.Group(); cabeza.position.y = 3.06; cuerpo.add(cabeza);
+  const craneo = pieza(cabeza, new THREE.SphereGeometry(.60, 40, 32), mPorcelana, 0, 0);
+  craneo.scale.set(1, 1.03, .97);
+  pieza(cabeza, new THREE.CapsuleGeometry(.19, .16, 6, 16), mPorcelana, 0, -.62);   /* cuello */
+
+  /* dos peinados: se intercambian mientras está de espaldas */
+  const peloCorto = new THREE.Group(); cabeza.add(peloCorto);
+  const casco = pieza(peloCorto, new THREE.SphereGeometry(.622, 36, 28, 0, Math.PI*2, 0, Math.PI*.42), mPelo, 0, .01);
+  casco.scale.set(1, 1.05, .99); casco.rotation.x = -.13;
+
+  const peloLargo = new THREE.Group(); peloLargo.visible = false; cabeza.add(peloLargo);
+  const casco2 = pieza(peloLargo, new THREE.SphereGeometry(.626, 36, 28, 0, Math.PI*2, 0, Math.PI*.46), mPelo, 0, .01);
+  casco2.scale.set(1, 1.05, .99); casco2.rotation.x = -.10;
+  [-1, 1].forEach(s => {
+    const m = pieza(peloLargo, new THREE.CapsuleGeometry(.175, .56, 8, 18), mPelo, s*.47, -.40, -.08);
+    m.scale.set(1, 1, .72);
+  });
+  const nuca = pieza(peloLargo, new THREE.CapsuleGeometry(.30, .38, 8, 20), mPelo, 0, -.36, -.30);
+  nuca.scale.set(1.05, 1, .58);
+
+  /* ---------- estado ---------- */
+  const S = { silueta:'corto', tono:0, alt:175, pes:72 };
+  let saludo = 0, salto = 0, giro = 0, giroHecho = true, giroDestino = 'corto';
+  const colorActual = new THREE.Color(TONOS[0].c);
+  const colorObjetivo = new THREE.Color(TONOS[0].c);
+
+  function aplicarMedidas(){
+    const esperado = (S.alt - 100) * .92;
+    const k = Math.max(.78, Math.min(1.5, Math.pow(S.pes / esperado, .58)));
+    const escAlto = .90 + (S.alt - 148) / 57 * .20;
+    cuerpo.scale.set(k, escAlto, k);
+    cabeza.scale.setScalar(1 / Math.pow(k, .72));     /* la cabeza casi no engorda: es chibi */
+  }
+  aplicarMedidas();
+
+  /* ---------- controles ---------- */
+  const cajaTonos = document.getElementById('tonos');
+  const nomTono = document.getElementById('tonoNom');
+  TONOS.forEach((t, i) => {
+    const d = document.createElement('div');
+    d.className = 'tono' + (i === 0 ? ' on' : '');
+    d.style.background = '#' + t.c.toString(16).padStart(6, '0');
+    d.title = t.n;
+    d.addEventListener('click', () => {
+      cajaTonos.querySelectorAll('.tono').forEach(x => x.classList.remove('on'));
+      d.classList.add('on');
+      S.tono = i;
+      colorObjetivo.setHex(t.c);
+      nomTono.innerHTML = t.n + ' <em>· ' + t.sub + '</em>';
+    });
+    cajaTonos.appendChild(d);
+  });
+  nomTono.innerHTML = TONOS[0].n + ' <em>· ' + TONOS[0].sub + '</em>';
+
+  document.getElementById('sil').addEventListener('click', e => {
+    const b = e.target.closest('.sil'); if (!b) return;
+    if (b.dataset.v === S.silueta) return;
+    document.querySelectorAll('.sil').forEach(x => x.classList.remove('on'));
+    b.classList.add('on');
+    S.silueta = b.dataset.v;
+    giroDestino = S.silueta; giro = 1; giroHecho = false;      /* gira y cambia de espaldas */
+  });
+
+  document.getElementById('b-hola').addEventListener('click', () => { saludo = 1; });
+  document.getElementById('b-fest').addEventListener('click', () => { salto = 1; confeti(); });
+  document.getElementById('b-girar').addEventListener('click', () => { giro = 1; giroHecho = true; });
+
+  document.getElementById('r-alt').addEventListener('input', function(){
+    S.alt = +this.value; document.getElementById('v-alt').textContent = S.alt; aplicarMedidas();
+  });
+  document.getElementById('r-pes').addEventListener('input', function(){
+    S.pes = +this.value; document.getElementById('v-pes').textContent = S.pes; aplicarMedidas();
+  });
+
+  function confeti(){
+    const col = ['#C9A227','#B0563B','#5C6349','#27505A','#B08152'];
+    for (let i = 0; i < 22; i++){
+      const c = document.createElement('div');
+      c.style.cssText = 'position:absolute;z-index:5;width:7px;height:11px;border-radius:2px;top:26%;left:' +
+        (34 + Math.random()*32) + '%;background:' + col[i % col.length] + ';';
+      c.animate([
+        { transform:'translate(0,0) rotate(0)', opacity:1 },
+        { transform:`translate(${((Math.random()-.5)*180).toFixed(0)}px,300px) rotate(${(Math.random()*720-360).toFixed(0)}deg)`, opacity:0 }
+      ], { duration:1500+Math.random()*900, delay:Math.random()*300, easing:'cubic-bezier(.3,0,.7,1)', fill:'forwards' });
+      cont.appendChild(c);
+      setTimeout(() => c.remove(), 3000);
+    }
+  }
+
+  /* ---------- animación ---------- */
+  const reloj = new THREE.Clock();
+  (function anim(){
+    requestAnimationFrame(anim);
+    const dt = Math.min(.05, reloj.getDelta()), t = reloj.elapsedTime;
+
+    if (saludo > 0) saludo = Math.max(0, saludo - dt/1.5);
+    if (salto  > 0) salto  = Math.max(0, salto  - dt/0.95);
+    if (giro   > 0) giro   = Math.max(0, giro   - dt/1.15);
+
+    /* color de la prenda: entra suave, nunca de golpe */
+    colorActual.lerp(colorObjetivo, 1 - Math.pow(.0025, dt));
+    mPrenda.color.copy(colorActual);
+
+    /* quieto: respira y se balancea apenas */
+    muneco.position.y = .34 + Math.sin(t*1.5)*.028;
+    cabeza.rotation.z = Math.sin(t*.75)*.030;
+    cabeza.rotation.x = Math.sin(t*.62)*.022;
+    let rotY = Math.sin(t*.42)*.16;
+
+    /* giro de 360°: el peinado se cambia justo cuando está de espaldas */
+    if (giro > 0){
+      const f = 1 - giro;
+      const e = f < .5 ? 4*f*f*f : 1 - Math.pow(-2*f+2, 3)/2;    /* easeInOut */
+      rotY += e * Math.PI * 2;
+      if (!giroHecho && f > .5){
+        peloCorto.visible = (giroDestino === 'corto');
+        peloLargo.visible = (giroDestino === 'largo');
+        giroHecho = true;
+      }
+      muneco.position.y += Math.sin(f*Math.PI) * .10;
+    }
+    muneco.rotation.y = rotY;
+
+    /* saludo: levanta el brazo derecho y lo mueve */
+    P.brazos[1].rotation.z = saludo > 0 ? 2.25 + Math.sin(saludo*Math.PI*6)*.30 : 0;
+    if (saludo > 0) cabeza.rotation.z += Math.sin(saludo*Math.PI*6)*.07;
+
+    /* festejo: salta, se estira en el aire y se aplasta al caer */
+    if (salto > 0){
+      const f = 1 - salto, arco = Math.sin(f*Math.PI);
+      muneco.position.y += arco*.95;
+      const sy = f < .12 ? 1-(.12-f)*1.3 : f > .88 ? 1-(f-.88)*1.3 : 1+arco*.07;
+      muneco.scale.set(2-sy, sy, 2-sy);
+      P.brazos[0].rotation.z = -2.15*arco;
+      P.brazos[1].rotation.z =  2.15*arco;
+      cabeza.rotation.x -= arco*.12;
+    } else if (muneco.scale.y !== 1){
+      muneco.scale.set(1,1,1);
+      P.brazos[0].rotation.z = 0;
+    }
+
+    rend.render(escena, cam);
+  })();
+
+  addEventListener('resize', () => {
+    const w = cont.clientWidth, h = cont.clientHeight;
+    cam.aspect = w/h; cam.updateProjectionMatrix(); rend.setSize(w, h);
+  });
+
+  /* saluda solo al entrar en pantalla, una vez */
+  if ('IntersectionObserver' in window){
+    let visto = false;
+    new IntersectionObserver(en => en.forEach(e => {
+      if (e.isIntersecting && !visto){ visto = true; setTimeout(() => { saludo = 1; }, 420); }
+    }), { threshold:.5 }).observe(cont);
+  }
+
+} catch (err) {
+  carga.innerHTML = 'Este navegador no soporta 3D (WebGL).<br>Por eso el maniquí plano tiene que existir igual, como plan B.';
+  console.error(err);
+}
+</script>
+</body>
+</html>
